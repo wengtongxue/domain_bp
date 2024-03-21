@@ -12,37 +12,30 @@ banner='''
 headers = {
         'User-Agent': 'Mozilla/5.0 (x11; Linux x86_64;rv:68.0)Gecko/20100101 Firefox/68.0'   
     }
-def check_domain(url,num_threads=10):
+def check_domain(url,num_threads=10):     #定义一个检查domain状态的函数
         try:            #这里使用try是因为这样才能避开不存在的url的异常，从而继续执行文件里的下一个参数
-            resp = requests.post(url=url,headers=headers,timeout=3)
+            resp = requests.get(url=url,headers=headers,timeout=3)
             if resp.status_code == 200:
-                print(url)   
-            else:
-                print(f"{url}, status code: {resp.status_code}")
-        except :  
-            pass
-def domain_check(site,num_threads):
+                print(f"\033[32m{url}\033[0m")   
+            else:                       #基于目标网址存在的情况,状态码为200时返回该url，不为200时返回报错的状态码
+                print(f"\033[41m{url}:status code: {resp.status_code}\033[0m")       #\033[41m 代表红色     \033[32m 代表绿色
+        except:  
+            pass #出现异常的情况下跳过
+
+def domain_check(site,max_workers):
     with open('./domain.txt') as file:
         domains=[f"http://{line.strip()}.{site}" for line in file]
-    with ThreadPoolExecutor(max_workers=num_threads) as executor:  
-        futures = {executor.submit(check_domain, domain, num_threads): domain for domain in domains}  
-
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:  
+        futures = {executor.submit(check_domain, domain): domain for domain in domains}  
         for future in as_completed(futures):  
-            domain = futures[future]  
-            try:  
-                # 可以在这里处理future.result()，如果有返回值的话  
-                pass  
-            except Exception as exc:  
-                print(f'Generated an exception: {exc}')  
+            domain = futures[future]   
   
 if __name__=='__main__':
     print(banner)
+    default_domain="baidu.com"
     target_domain = input("请输入要检查的域名（如baidu.com）: ")  
+    if target_domain:
+        default_domain=target_domain
     num_threads_input = input("请输入线程数(默认为10): ")  
-try:  
-    num_threads = int(num_threads_input)  
-    if num_threads < 1:  
-        raise ValueError("线程数必须为正整数")  
-except ValueError:  
-    num_threads = 10  # 默认值 
-    domain_check(target_domain,num_threads)
+    max_workers = int(num_threads_input) if num_threads_input.isdigit() else 10  # 转换输入为整数，或默认为10  
+    domain_check(default_domain,max_workers)
