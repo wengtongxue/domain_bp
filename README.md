@@ -1,4 +1,4 @@
-# information-gathering
+# domain_bp
 domain.txt文件为子域名字典，当然你也可以使用自己的字典进行替换
 基于python编写的子域名信息收集脚本
 本脚本运行时默认线程为10，可以按照自己设备能力进行对线程的更改
